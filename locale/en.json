@@ -1,6 +1,7 @@
 {
   "meta": {
     "title": "Whale Notify Station",
-    "description": "(Click to open the detailed settings) A plump blue whale girl: when a task finishes, needs a choice, or waits for your words, she blows bubbles and pops a notification — and keeps today's spend in mind for you. On macOS / Linux she also lives in your status bar; Windows has no status bar, so there she only notifies."
+    "description": "Notifications when tasks finish, fail, or need your attention, with daily spend and plan quota. Open Whale Notify Station in the left sidebar to configure it; this page contains the user guide. The status-bar whale is available on macOS / Linux; Windows supports notifications only.",
+    "detail": "README.md"
   }
 }

@@ -203,3 +203,27 @@ test.after(() => {
   // Host effects keep timers alive (ledger flush); dispose like cordis would.
   setTimeout(() => process.exit(0), 50).unref()
 })
+
+test('settings mascot serves the upper-body peeking sprite through the guarded host route', async () => {
+  const { setupRoutes } = await import('../lib/host/routes.js')
+  const ctx = fakeCtx()
+  const routes = {}
+  let rejection
+  ctx.services.webServer = { register: route => { routes[route.path] = route; return () => {} } }
+  ctx.services.connection = { requestRejection: () => rejection }
+  setupRoutes(ctx, { cfg: {}, tracker: {} })
+  const request = method => {
+    const response = { headers: {}, setHeader(name, value) { this.headers[name] = value }, end(body) { this.body = body } }
+    routes['/notify-tray/mascot'].handler({ method, url: '/notify-tray/mascot' }, response)
+    return response
+  }
+  const image = request('GET')
+  assert.equal(image.statusCode, 200)
+  assert.equal(image.headers['content-type'], 'image/png')
+  assert.deepEqual(image.body, readFileSync(new URL('../assets/mascot-peeking.png', import.meta.url)))
+  assert.equal(request('POST').statusCode, 405)
+  rejection = 403
+  const denied = request('GET')
+  assert.equal(denied.statusCode, 403)
+  assert.equal(denied.body, undefined)
+})

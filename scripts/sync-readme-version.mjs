@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const { version } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 
-for (const name of ['README.md', 'README.zh-CN.md']) {
+for (const name of ['README.md', 'README.zh-CN.md', 'README.en.md']) {
   const file = join(root, name)
   const text = readFileSync(file, 'utf8')
   const next = text.replace(/dsh-notify-tray@\d+\.\d+\.\d+(?:-[\w.]+)?/gu, `dsh-notify-tray@${version}`)

@@ -12,7 +12,7 @@ const React = {
 }
 const named = name => Object.assign(function Component() {}, { displayName: name })
 const ui = {
-  Switch: named('Switch'), Checkbox: named('Checkbox'), SegmentedControl: named('SegmentedControl'), Tag: named('Tag'),
+  Switch: named('Switch'), Checkbox: named('Checkbox'), SegmentedControl: named('SegmentedControl'), Tag: named('Tag'), Toast: named('Toast'),
   SettingsForm: named('SettingsForm'), SettingsValueField: named('SettingsValueField'),
   settingsNumberField: field => ({ field, format: v => (typeof v === 'number' ? String(v) : ''), parse: t => (t.trim() === '' ? { kind: 'clear' } : { kind: 'set', value: Number(t) }) }),
   settingsTextField: field => ({ field, format: v => (typeof v === 'string' ? v : ''), parse: t => (t.trim() === '' ? { kind: 'clear' } : { kind: 'set', value: t.trim() }) }),
@@ -36,7 +36,7 @@ function render(node, depth = 0) {
 }
 const collect = (tree, out = []) => { if (tree && typeof tree === 'object') { if (!Array.isArray(tree)) out.push(tree); for (const c of Array.isArray(tree) ? tree : tree.children ?? []) collect(c, out) } return out }
 
-test('settings page registers into plugins.bundle.config only and renders every field', () => {
+test('sidebar opens the settings main panel and plugin details have no config page', () => {
   let factory
   const sandbox = { window: { __ModuleLoader__: { load: ({ factory: f }) => { factory = f } } }, console, fetch: () => Promise.reject(new Error('offline')), setTimeout, clearTimeout, localStorage: { getItem: () => null, setItem() {} } }
   vm.runInNewContext(readFileSync(new URL('../lib/client.js', import.meta.url), 'utf8'), sandbox)
@@ -47,6 +47,7 @@ test('settings page registers into plugins.bundle.config only and renders every 
   const dictionaries = {}
   const values = { notifyCompleted: true, notifyChoice: true, notifyInput: false, notifyApproval: true, notifyFailed: true, suppressWhenFocused: true, sound: true, tray: true, showSpendInTitle: false, channel: 'auto', titleStyle: 'text', spendSource: 'auto', currency: 'CNY', errorHoldMinutes: 10, balancePollMinutes: 5, priceSource: 'auto', customPriceCurrency: 'CNY', exchangeRate: 7.2, planProvider: 'none', planId: '', planPeriod: 'month', planCurrency: 'CNY', planAutoQuota: true, quotaPollMinutes: 10 }
   const cctx = {
+    inject(names, fn) { assert.deepEqual(Array.from(names), ['layout']); fn(this) },
     uiWorkspace: { openSession() {} },
     sessions: { list: { getSnapshot: () => ({ byId: {} }) } },
     effect: fn => { const dispose = fn(); if (typeof dispose === 'function') disposers.push(dispose) },
@@ -56,17 +57,24 @@ test('settings page registers into plugins.bundle.config only and renders every 
   }
   client.apply(cctx)
 
-  assert.equal(registrations.length, 1, 'package page only — no second page behind the component row')
-  assert.deepEqual(registrations.map(r => [r.options.name, r.options.key]), [['plugins.bundle.config', 'dsh-notify-tray']])
+  assert.equal(registrations.length, 2, 'one main panel and its sidebar entry; no plugin-detail settings')
+  assert.deepEqual(registrations.map(r => [r.options.name, r.options.key ?? r.options.id]), [['main', 'notify-tray'], ['sidebar.panellist', 'notify-tray']])
+  assert.equal(registrations[1].options.label(), '小鲸鱼通知站')
+  assert.equal(registrations[1].Component({ size: 18 }).props.width, 18)
   const { options, Component } = registrations[0]
   const face = options.inject()
   const t = cctx.locale.bind(options.locale)
-  const props = { t, view: 'page', useNotifyTray: select => select(face.hooks.notifyTray.getSnapshot()), ...face }
+  const props = { t, view: 'page', useNotifyTray: select => select(face.hooks.notifyTray.getSnapshot()), useNotifyUpdate: select => select(face.hooks.notifyUpdate.getSnapshot()), ...face }
 
-  assert.equal(Component({ ...props, view: 'summary' }), dictionaries[options.locale].zh.summary)
+  assert.ok(JSON.stringify(render(Component(props))).includes(dictionaries[options.locale].zh.summary))
   // Folded: the first screen is the five notify checkboxes, sound, the whale, its label and the plan picker.
   const count = (nodes, type) => nodes.filter(n => n.type === type).length
   let nodes = collect(render(Component(props)))
+  const mascot = nodes.find(n => n.type === 'img' && n.props.className === 'dnt-mascot-sprite')
+  assert.equal(mascot.props.src, 'notify-tray/mascot?v=peeking-2', 'header uses the upper-body peeking sprite, not the cropped package icon')
+  assert.equal(mascot.props.draggable, false)
+  assert.equal(count(nodes, 'SettingsForm'), 0, 'no manual-save footer or discard-on-unmount wrapper')
+  assert.ok(nodes.some(n => n.type === 'h2' && n.children.includes('版本更新')))
   assert.equal(count(nodes, 'Checkbox'), 5, 'five notify checkboxes in one row')
   assert.equal(count(nodes, 'Switch'), 2, 'sound + tray')
   assert.equal(count(nodes, 'SegmentedControl'), 1, 'menu-bar label style')
@@ -109,6 +117,7 @@ test('settings page: choosing a provider fills the plan preset and shows quota f
   const dictionaries = {}
   const values = { planProvider: 'kimi', planId: '', planPeriod: 'month', planCurrency: 'CNY', planAutoQuota: true, quotaPollMinutes: 10, priceSource: 'auto', customPriceCurrency: 'CNY', exchangeRate: 7.2, channel: 'auto', titleStyle: 'text', spendSource: 'auto', currency: 'CNY', errorHoldMinutes: 10, balancePollMinutes: 5 }
   const cctx = {
+    inject(names, fn) { assert.deepEqual(Array.from(names), ['layout']); fn(this) },
     uiWorkspace: { openSession() {} },
     sessions: { list: { getSnapshot: () => ({ byId: {} }) } },
     effect: fn => { const dispose = fn(); if (typeof dispose === 'function') disposers.push(dispose) },
@@ -118,10 +127,10 @@ test('settings page: choosing a provider fills the plan preset and shows quota f
   }
   client.apply(cctx)
   const { options, Component } = registrations[0]
-  assert.equal(options.name, 'plugins.bundle.config')
+  assert.equal(options.name, 'main')
   const face = options.inject()
   const t = cctx.locale.bind(options.locale)
-  const props = { t, view: 'page', useNotifyTray: select => select(face.hooks.notifyTray.getSnapshot()), ...face }
+  const props = { t, view: 'page', useNotifyTray: select => select(face.hooks.notifyTray.getSnapshot()), useNotifyUpdate: select => select(face.hooks.notifyUpdate.getSnapshot()), ...face }
   // The page loads these from useEffect, which the React stub never runs.
   client.__settingsLive.loadCatalog()
   await client.__settingsLive.loadState()
@@ -180,6 +189,7 @@ async function renderFor(platform, navigatorPlatform) {
   const dictionaries = {}
   const values = { tray: true, sound: true, channel: 'auto', titleStyle: 'text', spendSource: 'auto', currency: 'CNY', errorHoldMinutes: 10, planProvider: 'none' }
   client.apply({
+    inject(names, fn) { assert.deepEqual(Array.from(names), ['layout']); fn(this) },
     uiWorkspace: { openSession() {} },
     sessions: { list: { getSnapshot: () => ({ byId: {} }) } },
     effect: fn => { fn() },
@@ -191,13 +201,13 @@ async function renderFor(platform, navigatorPlatform) {
   const { options, Component } = registrations[0]
   const face = options.inject()
   const zh = dictionaries[options.locale].zh
-  const props = { t: key => zh[key] ?? `?${key}`, view: 'page', useNotifyTray: select => select(face.hooks.notifyTray.getSnapshot()), ...face }
+  const props = { t: key => zh[key] ?? `?${key}`, view: 'page', useNotifyTray: select => select(face.hooks.notifyTray.getSnapshot()), useNotifyUpdate: select => select(face.hooks.notifyUpdate.getSnapshot()), ...face }
   // Platform checks look at every option, folded or not.
   client.__settingsLive.open.advanced = true
   const nodes = collect(render(Component(props)))
   const labels = nodes.filter(n => n.type === 'Switch' || n.type === 'SegmentedControl' || n.type === 'SettingsValueField').map(n => n.props.label)
   const texts = JSON.stringify(nodes.map(n => [n.props.hint, ...n.children.filter(c => typeof c === 'string')]))
-  return { zh, labels, texts, summary: Component({ ...props, view: 'summary' }), platform: client.__settingsLive.currentPlatform() }
+  return { zh, labels, texts, summary: nodes.find(n => n.type === 'p').children[0], platform: client.__settingsLive.currentPlatform() }
 }
 
 test('settings page on Windows: no status-bar section at all', async () => {
@@ -236,4 +246,76 @@ test('host: no status-bar whale on Windows', async () => {
   const { TRAY_PLATFORMS } = await import('../lib/index.js')
   assert.equal(TRAY_PLATFORMS.has('win32'), false)
   assert.ok(TRAY_PLATFORMS.has('darwin') && TRAY_PLATFORMS.has('linux'))
+})
+
+test('sidebar and main panel wait for layout and settings, and clean up on disable or reload', () => {
+  let factory
+  const registrations = new Map()
+  const dictionaries = {}
+  const disposers = []
+  let mountLayout
+  let syncSettings
+  let served = false
+  let currentLanguage = 'zh'
+  let namespace
+  const ctx = {
+    uiWorkspace: { openSession() {} },
+    sessions: { list: { getSnapshot: () => ({ byId: {} }) } },
+    inject: (names, mount) => { assert.deepEqual(Array.from(names), ['layout']); mountLayout = () => mount(ctx) },
+    effect: fn => { const dispose = fn(); if (dispose) disposers.push(dispose) },
+    locale: {
+      register: (ns, dict) => { dictionaries[ns] = dict; return () => { delete dictionaries[ns] } },
+      bind: ns => key => dictionaries[ns][currentLanguage][key],
+    },
+    configForms: {
+      get: ns => { namespace = ns; return { getSnapshot: () => ({ value: {}, status: 'ready', writable: true }) } },
+      whileServed: (names, register) => {
+        assert.deepEqual(Array.from(names), ['notify-tray'])
+        let stop
+        syncSettings = () => {
+          if (served && !stop) stop = register()
+          else if (!served && stop) { stop(); stop = undefined }
+        }
+        syncSettings()
+        return () => { stop?.(); stop = undefined; syncSettings = undefined }
+      },
+    },
+    slots: {
+      inject: (_name, register) => register(),
+      register: (options, Component) => {
+        const key = `${options.name}:${options.key ?? options.id}`
+        assert.ok(!registrations.has(key), 'no duplicate slot entries')
+        registrations.set(key, { options, Component })
+        return () => registrations.delete(key)
+      },
+    },
+  }
+  vm.runInNewContext(readFileSync(new URL('../lib/client.js', import.meta.url), 'utf8'), {
+    window: { __ModuleLoader__: { load: module => { factory = module.factory } } },
+    console, fetch: () => Promise.reject(new Error('offline')), setTimeout, clearTimeout,
+    localStorage: { getItem: () => null, setItem() {} },
+  })
+  const client = factory(name => ({ react: React, '@deepseek-ai/dsh-client-ui-primitives': ui })[name])
+  client.apply(ctx)
+  assert.equal(namespace, 'notify-tray', 'existing saved settings namespace is reused')
+  assert.equal(registrations.size, 0, 'layout not ready')
+  mountLayout()
+  assert.equal(registrations.size, 0, 'host settings not served')
+  served = true
+  syncSettings()
+  assert.equal(registrations.size, 2)
+  const sidebar = registrations.get('sidebar.panellist:notify-tray')
+  assert.ok(registrations.has(`main:${sidebar.options.id}`), 'sidebar navigates to a registered main panel')
+  assert.equal(sidebar.options.label(), '小鲸鱼通知站')
+  currentLanguage = 'en'
+  assert.equal(sidebar.options.label(), 'Whale Notify Station', 'sidebar follows live language changes')
+  served = false
+  syncSettings()
+  assert.equal(registrations.size, 0, 'disabling the host removes both entries')
+  served = true
+  syncSettings()
+  assert.equal(registrations.size, 2, 're-enabling restores one pair of entries')
+  for (const dispose of disposers.reverse()) dispose()
+  assert.equal(registrations.size, 0, 'client unload removes both entries')
+  assert.equal(syncSettings, undefined, 'client unload stops the host namespace watch')
 })

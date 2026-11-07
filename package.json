@@ -1,6 +1,6 @@
 {
   "name": "dsh-notify-tray",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "DeepSeek Harness 通知 + 状态栏插件：任务完成、需要输入、需要选择时弹系统通知（macOS / Windows / Linux）；macOS 与 Linux（含 UOS、Deepin、麒麟）状态栏常驻小图标，显示任务进度与花费。Windows 没有状态栏，只弹通知。",
   "keywords": [
     "deepseek",
@@ -29,7 +29,8 @@
     "icon.webp",
     "cordis.patch.yml",
     "README.md",
-    "README.zh-CN.md"
+    "README.zh-CN.md",
+    "README.en.md"
   ],
   "license": "MIT",
   "author": "ROYLeXJ",
@@ -50,7 +51,7 @@
   },
   "scripts": {
     "test": "node --test --test-force-exit test/*.test.js",
-    "version": "node scripts/sync-readme-version.mjs && git add README.md README.zh-CN.md",
+    "version": "node scripts/sync-readme-version.mjs && git add README.md README.zh-CN.md README.en.md",
     "update-prices": "node scripts/update-models-dev.mjs"
   },
   "dsh": {
@@ -65,7 +66,9 @@
         "@deepseek-ai/dsh-client-ui-workspace",
         "@deepseek-ai/dsh-client-locale",
         "@deepseek-ai/dsh-client-ui-settings",
-        "@deepseek-ai/dsh-client-ui-plugin-manager"
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-api-remotes"
       ]
     }
   },
@@ -73,8 +76,8 @@
     "dbus-next": "^0.10.2"
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "~4.0.5",
-    "@deepseek-ai/schemastery": "~3.18.5"
+    "@deepseek-ai/cordis": "~4.0.5 || ~4.1.0",
+    "@deepseek-ai/schemastery": "~3.18.5 || ~3.19.0"
   },
   "devDependencies": {
     "@deepseek-ai/schemastery": "~3.18.5"
