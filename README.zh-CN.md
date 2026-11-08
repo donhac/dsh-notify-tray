@@ -4,6 +4,8 @@
 
 任务完成、失败或需要你处理时收到通知；在 macOS / Linux 状态栏查看任务进度、今日花费和套餐额度。
 
+这是 [donhac/dsh-notify-tray](https://github.com/donhac/dsh-notify-tray) 的 **Donh 自用 Goal 感知 fork**，版本 `0.1.8-donh.1`，基于 [ROYLeXJ 的上游项目](https://github.com/ROYLeXJ/dsh-notify-tray)。包名保持 `dsh-notify-tray`，作为同一插件替换安装；原作者、MIT 许可与现有原创图标保留。分支、同步和版本固定策略见 [fork 维护说明](FORK.md)。
+
 ## 从这里开始
 
 1. 安装并启用插件后，在 DSH **左侧栏点击「小鲸鱼通知站」**（鲸鱼图标）。侧栏收起时，点图标也能打开设置。
@@ -25,6 +27,15 @@
 - 同一个会话只保留一条通知；问题回答或批准完成后，「需要你」的通知会收回（系统通道是否支持取决于平台）。
 - 多个任务在几秒内接连完成时，后续完成通知会合并。
 - 手动停止任务不发完成或失败通知；子智能体不单独提醒。
+
+### Goal 续轮通知
+
+- 归属于 `active` Goal 的轮次结束后仍可能自动续跑，因此不发「做完了」通知，也不把这一轮计入已完成任务。会话中遗留的旧 Goal 不影响独立问答。
+- Goal 在所属轮次内标记为 `complete` 后，等待该 turn 正常收尾，再按现有通知开关和聚合规则提醒一次；重复结束事件不重复计数或提醒。外部手动修改 Goal 状态不会补发历史轮次的完成通知。
+- Goal 变为 `blocked`、需要你处理时，按「翻车了」的开关发送失败提醒；失败统计和最近任务记录采用同一判断。
+- 普通问答、运行失败、批准、选择和文字输入提醒沿用原有行为。完成与失败统计跟随上述 Goal 判断；Token 用量与花费仍按实际消耗记录。
+
+此修复不新增设置项，也不改变现有侧栏与设置布局。
 
 「高级设置 → 通知从哪里弹」默认为**自动**：有具备通知权限的 DSH 窗口时由窗口弹，否则使用系统通知。通常保持默认即可。
 
@@ -85,25 +96,23 @@
 
 ## 安装与更新
 
-在 DSH「插件 → 添加插件」输入 `dsh-notify-tray` 安装。需要指定已发布版本时，输入 `dsh-notify-tray@版本号`，可在 [npm](https://www.npmjs.com/package/dsh-notify-tray) 查看已发布版本。
+### 安装 Donh fork
 
-### 在线更新
-
-侧栏设置页底部提供「版本更新」卡片：
-
-- 打开设置页时自动检查，也可以点击「检查更新」。
-- 发现兼容且未废弃的正式版时，显示新版本号和「立即更新」。点击后先保存设置，再交给 DSH 原生插件管理器更新。
-- 安装不会自动开始；DSH 负责版本兼容性检查和失败时的恢复。页面会区分更新完成、需要重启、恢复旧版和结果尚未确认。
-- 本地目录、Git 等非 npm 安装不支持这条在线更新流程，会显示原因。需等正式版发布到 npm 后，通过插件管理页改为 npm 安装。
-
-也可以继续使用 DSH 插件管理页的原生更新功能。提示需要重启时，请重启 DSH。
-
-开发或试用尚未发布的代码，可从本地仓库安装：
+本 fork 无需发布到 npm。使用 [donhac/dsh-notify-tray](https://github.com/donhac/dsh-notify-tray) 的本地工作仓库，在 DSH 原生 PluginManager 中将安装目标设为仓库绝对路径；使用 Agent 工具时对应 `plugin_manager` 的 `install_bundle` 操作和 `target` 路径。CLI 方式为：
 
 ```sh
 dsh plugin --profile desktop add /absolute/path/to/dsh-notify-tray
 ```
 
-Web 用户将 `desktop` 换成 `web`。安装后重启对应 DSH 实例。
+Web 用户将 `desktop` 换成 `web`。包名保持 `dsh-notify-tray`，用于替换已安装的同一插件，不添加第二份插件。安装器的应用结果与必要的重启决定是否生效；代码修改或测试通过不等于当前 DSH 已安装此版本。
 
-遇到问题可在 [GitHub Issues](https://github.com/ROYLeXJ/dsh-notify-tray/issues) 提交，附上 DSH 版本、插件版本、系统和复现步骤。
+本地工作仓库会随检出分支而变化。长期使用建议固定到已验证的 commit 或 tag，在独立 worktree 中安装；也可将 PluginManager 的安装目标固定为 `git+https://github.com/donhac/dsh-notify-tray.git#<commit-or-tag>`。版本号 `0.1.8-donh.1` 本身不代表 npm 上存在这个版本。完整步骤见 [fork 维护说明](FORK.md)。
+
+### 同步与更新通道
+
+- `master` 只跟随原作者 upstream，保持纯净；`donh` 是长期自用分支，`fix/goal-aware-notifications` 用于此修复。
+- 通过 merge 同步上游和维护分支，不 rebase 已公开历史。更新后运行测试，再通过 PluginManager 安装固定的 commit/tag 或本地目录，并按安装结果重启。
+- 侧栏的「版本更新」卡片沿用上游 npm 正式版检查逻辑。本地目录和 Git 安装不使用这条在线更新流程；它不是 Donh fork 的更新通道。
+- 在「添加插件」输入 `dsh-notify-tray` 或 `dsh-notify-tray@版本号` 会选择 [原作者 npm 包](https://www.npmjs.com/package/dsh-notify-tray)，不会自动选择本 fork。
+
+Fork 问题请在 [donhac GitHub Issues](https://github.com/donhac/dsh-notify-tray/issues) 提交，附上 DSH 版本、插件版本、commit/tag、系统和复现步骤。

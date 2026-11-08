@@ -4,6 +4,8 @@
 
 Get notified when tasks finish, fail, or need your attention. On macOS / Linux, the status-bar whale also shows task progress, daily spend, and plan quota.
 
+This is **Donh's personal Goal-aware fork**, [donhac/dsh-notify-tray](https://github.com/donhac/dsh-notify-tray), version `0.1.8-donh.1`, based on [ROYLeXJ's upstream project](https://github.com/ROYLeXJ/dsh-notify-tray). It retains the package name `dsh-notify-tray` and replaces the same plugin rather than adding a second copy. The original author, MIT license, and existing original icon are retained. See the [fork maintenance notes](FORK.md) for branches, synchronization, and version pinning.
+
 ## Get started
 
 1. Install and enable the plugin, then click **Whale Notify Station** (the whale icon) in DSH's **left sidebar**. The icon also works when the sidebar is collapsed.
@@ -25,6 +27,15 @@ Five events are enabled by default: **completed, failed, approval needed, choice
 - Each session keeps one notification. Answering a question or resolving an approval withdraws its attention notification, subject to platform support for the system channel.
 - Tasks that finish within a few seconds of each other have their later completion notifications grouped.
 - Manually stopping a task does not notify. Subagents do not notify separately.
+
+### Goal continuation notifications
+
+- A turn belonging to an `active` Goal can lead to another automatic round. It does not trigger a completion notification or count as a completed task. An old Goal does not suppress independent questions.
+- After a Goal is marked `complete` within its owning turn, that turn must finish normally before it produces one completion result, subject to the existing toggles and grouping rules. Duplicate end events do not notify or count again. External manual Goal changes do not replay completion notifications for historical turns.
+- A `blocked` Goal needs your attention and uses the failed-notification toggle. Failure statistics and recent task results follow the same decision.
+- Ordinary questions, execution failures, approvals, choices, and text input keep their existing behavior. Completion and failure counts follow the Goal rules above; token usage and spend still reflect actual consumption.
+
+This fix adds no settings and keeps the existing sidebar and settings layout.
 
 The notification channel defaults to **Auto**: a DSH window with notification permission sends notifications; otherwise the host uses system notifications. Usually you can leave this unchanged.
 
@@ -85,25 +96,23 @@ The spend ledger is at `~/.dsh/storages/dsh-notify-tray/ledger.json` by default 
 
 ## Install and update
 
-In DSH, open **Plugins → Add plugin** and enter `dsh-notify-tray`. To select a published version, enter `dsh-notify-tray@version`; check [npm](https://www.npmjs.com/package/dsh-notify-tray) for available releases.
+### Install the Donh fork
 
-### Online updates
-
-The **Updates** card at the bottom of the sidebar settings page:
-
-- Checks when you open the page, or when you click **Check for updates**.
-- Offers **Update now** for a compatible, non-deprecated stable release. Clicking saves settings first, then asks DSH's native plugin manager to update.
-- Never installs automatically. DSH handles compatibility checks and recovery on failure. The page distinguishes completion, a required restart, restoration, and an unconfirmed outcome.
-- Explains why local-directory and Git installations cannot use this update path. Once a release is published to npm, switch to an npm installation through plugin management to enable online updates.
-
-DSH's native plugin management update controls remain available. Restart DSH when requested.
-
-To develop or try unpublished code, install a local checkout:
+This fork does not need an npm release. Use a local checkout of [donhac/dsh-notify-tray](https://github.com/donhac/dsh-notify-tray), and set its absolute directory as the installation target in DSH's native PluginManager. For an Agent, this is the `plugin_manager` tool's `install_bundle` action with the directory as `target`. The CLI equivalent is:
 
 ```sh
 dsh plugin --profile desktop add /absolute/path/to/dsh-notify-tray
 ```
 
-Web users should replace `desktop` with `web`. Restart the corresponding DSH instance after installation.
+Web users should replace `desktop` with `web`. Keeping the package name `dsh-notify-tray` replaces the same installed plugin without adding a second copy. The installer's application result and any required restart determine whether the change is active; code changes or passing tests do not establish that this version is installed in the current DSH instance.
 
-Report problems on [GitHub Issues](https://github.com/ROYLeXJ/dsh-notify-tray/issues), including DSH and plugin versions, the operating system, and reproduction steps.
+A working checkout changes when you switch branches. For long-term use, pin a verified commit or tag in a separate worktree and install that directory. Alternatively, pin the PluginManager target to `git+https://github.com/donhac/dsh-notify-tray.git#<commit-or-tag>`. The version string `0.1.8-donh.1` does not imply an npm release exists. See the [fork maintenance notes](FORK.md) for the full steps.
+
+### Synchronization and update channels
+
+- `master` stays a clean mirror of the original author's upstream; `donh` is the long-term personal branch, and `fix/goal-aware-notifications` carries this fix.
+- Merge upstream and maintenance branches without rebasing public history. Test updates, then use PluginManager to install a pinned commit/tag or local directory and restart as its result requires.
+- The sidebar **Updates** card retains the upstream npm stable-release checks. Local-directory and Git installations do not use this online update path; it is not the Donh fork's update channel.
+- Entering `dsh-notify-tray` or `dsh-notify-tray@version` in **Add plugin** selects the [original author's npm package](https://www.npmjs.com/package/dsh-notify-tray), not this fork automatically.
+
+Report fork problems on [donhac GitHub Issues](https://github.com/donhac/dsh-notify-tray/issues), including DSH and plugin versions, commit/tag, the operating system, and reproduction steps.

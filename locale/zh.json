@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "小鲸鱼通知站",
-    "description": "任务完成、失败或需要你处理时弹通知，查看今日花费与套餐额度。点击左侧栏「小鲸鱼通知站」进行设置；此页为使用说明。macOS / Linux 支持状态栏小鲸鱼，Windows 仅提供通知。",
+    "title": "小鲸鱼通知站 · Donh",
+    "description": "Donh 自用 Goal 感知 fork：Goal 续轮不报完成，真正完成或需要处理时提醒。保留通知、花费与额度功能；左侧栏「小鲸鱼通知站」设置。macOS / Linux 支持状态栏，Windows 仅通知。",
     "detail": "README.md"
   }
 }
