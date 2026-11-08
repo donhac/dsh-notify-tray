@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Whale Notify Station",
-    "description": "Notifications when tasks finish, fail, or need your attention, with daily spend and plan quota. Open Whale Notify Station in the left sidebar to configure it; this page contains the user guide. The status-bar whale is available on macOS / Linux; Windows supports notifications only.",
+    "title": "Whale notify station · Donh",
+    "description": "Donh's personal Goal-aware fork: notify on final Goal completion or when attention is needed, with spend and quota tracking. Configure Whale Notify Station in the sidebar. macOS / Linux support the status bar; Windows supports notifications only.",
     "detail": "README.md"
   }
 }

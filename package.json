@@ -1,7 +1,7 @@
 {
   "name": "dsh-notify-tray",
-  "version": "0.1.8",
-  "description": "DeepSeek Harness 通知 + 状态栏插件：任务完成、需要输入、需要选择时弹系统通知（macOS / Windows / Linux）；macOS 与 Linux（含 UOS、Deepin、麒麟）状态栏常驻小图标，显示任务进度与花费。Windows 没有状态栏，只弹通知。",
+  "version": "0.1.8-donh.1",
+  "description": "Donh 自用 Goal 感知 fork。DeepSeek Harness 通知 + 状态栏插件：任务完成、需要输入、需要选择时弹系统通知（macOS / Windows / Linux）；macOS 与 Linux（含 UOS、Deepin、麒麟）状态栏常驻小图标，显示任务进度与花费。Windows 没有状态栏，只弹通知。",
   "keywords": [
     "deepseek",
     "deepseek-harness",
@@ -30,17 +30,18 @@
     "cordis.patch.yml",
     "README.md",
     "README.zh-CN.md",
-    "README.en.md"
+    "README.en.md",
+    "FORK.md"
   ],
   "license": "MIT",
   "author": "ROYLeXJ",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ROYLeXJ/dsh-notify-tray.git"
+    "url": "git+https://github.com/donhac/dsh-notify-tray.git"
   },
-  "homepage": "https://github.com/ROYLeXJ/dsh-notify-tray#readme",
+  "homepage": "https://github.com/donhac/dsh-notify-tray#readme",
   "bugs": {
-    "url": "https://github.com/ROYLeXJ/dsh-notify-tray/issues"
+    "url": "https://github.com/donhac/dsh-notify-tray/issues"
   },
   "publishConfig": {
     "access": "public",

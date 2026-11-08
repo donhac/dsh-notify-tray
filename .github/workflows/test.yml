@@ -2,7 +2,7 @@ name: test
 
 on:
   push:
-    branches: [master]
+    branches: [master, donh, 'fix/**']
   pull_request:
 
 jobs:
